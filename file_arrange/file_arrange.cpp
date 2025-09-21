@@ -202,12 +202,12 @@ void folder_scan(std::string dir_name2)
             path dirPath_ext = dirPath / ext;
             if (exists(dirPath_ext) && is_directory(dirPath))
             {
-                /* file_scan(dirPath_ext.string()); */
                 file_move(dir_name2, ext);
             }
             else
             {
-                create_directory(dirPath_ext);      /* Create a new folder with extension name */
+                 /* Create a new folder with extension name */
+                create_directory(dirPath_ext);     
                 std::cout << "Folder Created!" << '\n';
                 file_move(dir_name2, ext);
             }
@@ -215,7 +215,8 @@ void folder_scan(std::string dir_name2)
     } 
     else 
     {
-        std::cerr << "Directory not found." << '\n';  /* Handle the case where the directory doesn't exist  */
+        /* Handle the case where the directory doesn't exist  */
+        std::cerr << "Directory not found." << '\n'; 
     }
 }
 
@@ -237,6 +238,7 @@ void folder_scan_for_file_size(std::string dir_name5)
 
     if (exists(dirPath) && is_directory(dirPath))
     { 
+        /* Collect file sizes and names */
         for (const auto& entry : directory_iterator(dirPath))
         { 
             if (entry.is_regular_file())
@@ -252,16 +254,14 @@ void folder_scan_for_file_size(std::string dir_name5)
         sort(file_sizes.begin(), file_sizes.end());
 
         out_sizes = sort_numbers(file_sizes, &max_out_size, &max_file_count);
-
-        //std::cout << "S: " << max_out_size << '\n';
-
-
+        
+        /* Create directories based on digit count of file size */
         for (int i = 0; i < max_out_size; i++) 
         {
             std::string digit_dir = "Digit_" + std::to_string(out_sizes[i]);
             path dirPath_digits = dirPath / digit_dir;
             std::cout << "Directory: " << dirPath_digits << '\n';
-            //std::cout << "Size: " << out_sizes[i] << '\n';
+
             for (int j = 0; j < max_file_count; j++)
             {  
                 if (exists(dirPath_digits) && is_directory(dirPath_digits))
@@ -273,11 +273,11 @@ void folder_scan_for_file_size(std::string dir_name5)
                     {
                         auto source_file =  DirPath_size_copy;
                         auto target_file = dirPath_digits / file_list[j];
-                        std::ifstream source(source_file, std::ios::binary); // Open source file
-                        std::ofstream dest(target_file, std::ios::binary); // Open destination file
+                        std::ifstream source(source_file, std::ios::binary);
+                        std::ofstream dest(target_file, std::ios::binary);
                         dest << source.rdbuf();
                     }
-                  
+     
                 }
                 else
                 {
@@ -299,10 +299,17 @@ void folder_scan_for_file_size(std::string dir_name5)
     } 
     else 
     {   
-        std::cerr << "Directory not found." << '\n';  /* Handle the case where the directory doesn't exist  */
+        /* Handle the case where the directory doesn't exist  */
+        std::cerr << "Directory not found." << '\n';  
     }
 }
 
+/**
+ * @brief Organizes files alphabetically into folders
+ *        based on their starting character.
+ * 
+ * @param dir_name6  Path to directory.
+ */
 void file_move_alphabetical(std::string dir_name6)
 {
     path dirPath = dir_name6;
@@ -313,6 +320,7 @@ void file_move_alphabetical(std::string dir_name6)
     
     if (exists(dirPath) && is_directory(dirPath))
     {
+        /* Extract first letters of filenames */
         for (const auto& entry : directory_iterator(dirPath)) 
         { 
             if (entry.is_regular_file())
@@ -321,23 +329,24 @@ void file_move_alphabetical(std::string dir_name6)
                 file_names_list.push_back(temporary_file_name);
                 char temp_char = static_cast<char>(toupper(temporary_file_name[0]));
                 file_names_alph.push_back(std::to_string(temp_char));
-                //std::cout << "File: " << file_names_list[ctr] << " "<< ctr << temp_char <<'\n';
-                //std::cout << "Char: " << file_names_alph[ctr] << '\n';
                 ctr++;
             }
         }
+
+        /* Sort and deduplicate letters */
         sort(file_names_alph.begin(), file_names_alph.end());
         auto unique_alph_list = std::unique(file_names_alph.begin(), file_names_alph.end());
         file_names_alph.erase(unique_alph_list, file_names_alph.end());
-        long long unsigned int file_names_alph_size = file_names_alph.size();
-        long long unsigned int file_names_list_size = file_names_list.size();
-        //std::cout << "Size: " << file_names_alph_size << '\n';
         
+        long long unsigned int file_names_alph_size = file_names_alph.size();
+        long long unsigned int file_names_list_size = file_names_list.size();        
 
+        /* Create directories and move files accordingly */
         for (long long unsigned int i = 0; i < file_names_alph_size; i++)
         {
             char alph_char = stoi(file_names_alph[i]);
-            std::string temp_str(1, alph_char); /* Converts single character into string so when printing it will print as string */
+            /* Converts single character into string so when printing it will print as string */
+            std::string temp_str(1, alph_char); 
             path dirPath_char = dirPath / temp_str;
             
             std::cout << "dirPath_char: " << dirPath_char << '\n';
@@ -350,8 +359,8 @@ void file_move_alphabetical(std::string dir_name6)
                     {
                         auto source_file =  dirPath_copy;
                         auto target_file = dirPath_char / file_names_list[j];
-                        std::ifstream source(source_file, std::ios::binary); // Open source file
-                        std::ofstream dest(target_file, std::ios::binary); // Open destination file
+                        std::ifstream source(source_file, std::ios::binary);
+                        std::ofstream dest(target_file, std::ios::binary);
                         dest << source.rdbuf();
                     }
                 }
@@ -363,8 +372,8 @@ void file_move_alphabetical(std::string dir_name6)
                     {
                         auto source_file =  dirPath_copy;
                         auto target_file = dirPath_char / file_names_list[j];
-                        std::ifstream source(source_file, std::ios::binary); // Open source file
-                        std::ofstream dest(target_file, std::ios::binary); // Open destination file
+                        std::ifstream source(source_file, std::ios::binary);
+                        std::ofstream dest(target_file, std::ios::binary);
                         dest << source.rdbuf();
                     }
                 }
@@ -374,12 +383,18 @@ void file_move_alphabetical(std::string dir_name6)
     }
     else
     {
-        std::cerr << "Directory not found." << '\n';  /* Handle the case where the directory doesn't exist  */
-    }
+        std::cerr << "Directory not found." << '\n'; 
 
 }
 
-
+/**
+ * @brief Entry point of the program.
+ * 
+ * User chooses a directory and a command:
+ *  - "0": Organize files by extension.
+ *  - "1": Organize files by file size digit length.
+ *  - "2": Organize files alphabetically.
+ */
 int main()
 {
     std::string dir_input;
@@ -391,7 +406,6 @@ int main()
     printf("Please Enter Command: \n");
     std::cin >> input_command;
 
-    /* file_scan(dir_input); */
     if(input_command == "0")
     {
         folder_scan(dir_input);
@@ -409,4 +423,5 @@ int main()
 
     system("pause");
 }
+
 
