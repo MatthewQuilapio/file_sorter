@@ -2,30 +2,45 @@
 
 using namespace std::filesystem;
 
+/**
+ * @brief Sorts a list of file sizes (as strings), removes duplicates,
+ *        and returns the sorted unique lengths as an integer array.
+ * 
+ * @param file_vector_sizes  Vector of file size strings.
+ * @param max_out_size       Output: Number of unique lengths.
+ * @param max_file_count     Output: Total number of input files.
+ * @return int*              Dynamically allocated array of unique sizes.
+ *                           (Caller is responsible for freeing memory.)
+ */
 int* sort_numbers(std::vector<std::string>& file_vector_sizes, int *max_out_size, int *max_file_count)
 {
     std::vector<std::string> init_value = file_vector_sizes;
     std::vector<int> file_vector_length;
 
     long long unsigned int ctr = init_value.size();
-
+    
+    /* Convert string sizes into integer lengths */
     for(long long unsigned int i = 0; i < ctr; i++)
     {
         file_vector_length.push_back(static_cast<int>(init_value[i].length()));
     }
 
+    /* Sort the lengths */
     sort(file_vector_length.begin(), file_vector_length.end());
 
-    auto last = std::unique(file_vector_length.begin(), file_vector_length.end());          /* Removes duplicate element */
-
-    file_vector_length.erase(last, file_vector_length.end()); 
+    /* Removes duplicate element */
+    auto last = std::unique(file_vector_length.begin(), file_vector_length.end());          
+    file_vector_length.erase(last, file_vector_length.end());
+    
     long long unsigned int ctr2 = static_cast <long long unsigned int>(file_vector_length.size());
     int* return_vector_size = new int[ctr2];
+
     *max_file_count = static_cast <int>(ctr);
     *max_out_size = static_cast <int>(ctr2);
 
     std::cout << "File count: " << *max_file_count << '\n';
 
+    /* Copy results into return array */
     for(long long unsigned int j = 0; j < ctr2; j++)
     {
         return_vector_size[j] =  static_cast<int>(file_vector_length[j]);
@@ -35,26 +50,36 @@ int* sort_numbers(std::vector<std::string>& file_vector_sizes, int *max_out_size
     return return_vector_size;
 }
 
+/**
+ * @brief Scans a directory and prints all file/folder names.
+ * 
+ * @param dir_name1  Path to directory.
+ */
 void file_scan(std::string dir_name1)
 {
     path dirFilePath = dir_name1;
 
     if (exists(dirFilePath) && is_directory(dirFilePath)) { 
-        // Loop through each item (file or subdirectory) in 
-        // the directory 
+        /* Loop through each item (file or subdirectory) in the directory  */
         for (const auto& entry : directory_iterator(dirFilePath)) { 
-            // Output the path of the file or subdirectory 
+            /* Output the path of the file or subdirectory */ 
             std::cout << "File: " << entry.path().filename() << '\n';
         }
     } 
     else 
     { 
-        // Handle the case where the directory doesn't exist 
+        /* Handle the case where the directory doesn't exist  */
         std::cerr << "Directory not found." << '\n'; 
 
     }
 }
 
+/**
+ * @brief Moves files with a specific extension into a subfolder.
+ * 
+ * @param dir_name3  Source directory.
+ * @param ext_dir1   Extension to filter (e.g., "txt").
+ */
 void file_move(std::string dir_name3, std::string ext_dir1)
 {
     path dirCopyPath = dir_name3;
@@ -62,24 +87,23 @@ void file_move(std::string dir_name3, std::string ext_dir1)
 
     std::string extension_cond = '.' + ext_dir1;
 
-    //std::cout << "Directory: " << extension_cond << '\n'; 
-
-    
     if (exists(dirCopyPath) && is_directory(dirCopyPath))
     {
         for(const auto& entry : directory_iterator(dirCopyPath))
         {
             std::string filename_path = entry.path().filename().string();
-
-
+            
             if (entry.is_regular_file())
             {
+                /* Check if file extension matches */
                 if((entry.path().extension().string()) == extension_cond)
                 {
                     auto source_file =  dirCopyPath / filename_path;
                     auto target_file = dirPath_with_ext / filename_path;
-                    std::ifstream source(source_file, std::ios::binary); // Open source file
-                    std::ofstream dest(target_file, std::ios::binary); // Open destination file
+
+                    /* Copy file into extension-specific folder */
+                    std::ifstream source(source_file, std::ios::binary);
+                    std::ofstream dest(target_file, std::ios::binary);
                     dest << source.rdbuf();
                 }
             }
@@ -87,7 +111,12 @@ void file_move(std::string dir_name3, std::string ext_dir1)
     } 
 }
 
-void clean_outside_files(std::string dirname4)    /* Function for deleting outside files */
+/**
+ * @brief Deletes all files inside a directory.
+ * 
+ * @param dirname4  Path to directory.
+ */
+void clean_outside_files(std::string dirname4)
 {
     path dirCleanPath = dirname4;
 
@@ -101,7 +130,12 @@ void clean_outside_files(std::string dirname4)    /* Function for deleting outsi
     } 
 }
 
-/* This is to scan folders and create folders for moving files. */
+/**
+ * @brief Organizes files into subfolders based on their extension.
+ *        Creates folders automatically if they don’t exist.
+ * 
+ * @param dir_name2  Path to directory.
+ */
 void folder_scan(std::string dir_name2)
 {
     path dirPath = dir_name2;
@@ -120,22 +154,22 @@ void folder_scan(std::string dir_name2)
 
             std::string extension_name = entry.path().extension().string();
             extension_name.erase(std::remove(extension_name.begin(),extension_name.end(),'.'), extension_name.end());
-            
-            if(extension_name != "")    /* To prevent null values add to vector of extension names */
+
+            /* To prevent null values add to vector of extension names */
+            if(extension_name != "")    
             {
-                available_extensions.push_back(extension_name);     /* Add extension names */
+                available_extensions.push_back(extension_name);
             }
         }
+
+         /* Sort and removes duplicate extensions */
         sort(available_extensions.begin(), available_extensions.end());
-
-        auto last = std::unique(available_extensions.begin(), available_extensions.end());          /* Removes duplicate element */
-
+        auto last = std::unique(available_extensions.begin(), available_extensions.end());         
         available_extensions.erase(last, available_extensions.end());        /* Removes last null element */
 
         long long unsigned int ext_size = static_cast <long long unsigned int> (available_extensions.size());
 
         /* This fixes the bugs for copying the wrong file to the wrong folder (e.g. a csv file copies to a .c folder) */
-
         for (long long unsigned int i = 0; i < ext_size; i++)
         {
             std::string::size_type temp_length = available_extensions[i].length();
@@ -150,7 +184,7 @@ void folder_scan(std::string dir_name2)
             arranged_ext_length.push_back(extension_length[k-1]);        
         }
 
-        /* To determine the arrangement by string size */
+        /* Match lengths back to extensions */
         for (long long unsigned int l = 0; l < ext_size; l++)     
         {
            for (long long unsigned int m = 0; m < ext_size; m++)
@@ -162,10 +196,10 @@ void folder_scan(std::string dir_name2)
            }
         }
             
-        /*This function is used to create uncreated folders. */
+        /*Create folders and move files into them */
         for (const std::string& ext : arranged_extension)
         {
-            path dirPath_ext = dirPath / ext; /* To concatenate the extension folder and current path*/
+            path dirPath_ext = dirPath / ext;
             if (exists(dirPath_ext) && is_directory(dirPath))
             {
                 /* file_scan(dirPath_ext.string()); */
@@ -180,12 +214,17 @@ void folder_scan(std::string dir_name2)
         }
     } 
     else 
-    { 
-        
+    {
         std::cerr << "Directory not found." << '\n';  /* Handle the case where the directory doesn't exist  */
     }
 }
 
+/**
+ * @brief Organizes files into folders based on the number of digits
+ *        in their file sizes (in KB).
+ * 
+ * @param dir_name5  Path to directory.
+ */
 void folder_scan_for_file_size(std::string dir_name5)
 {
     path dirPath = dir_name5;
@@ -370,3 +409,4 @@ int main()
 
     system("pause");
 }
+
